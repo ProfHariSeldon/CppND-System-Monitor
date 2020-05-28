@@ -17,7 +17,10 @@ class Process {
   bool operator<(Process const& a) const;  // TODO: See src/process.cpp
 
   // TODO: Declare any necessary private members
+  // https://github.com/rmorejon65/CppND-System-Monitor/blob/master/include/process.h
  private:
+  int pid_ = 0; 
+  float cpuUtilization_;
 };
 
 #endif

@@ -1,4 +1,7 @@
 #include "processor.h"
 
+// https://github.com/rmorejon65/CppND-System-Monitor/blob/master/src/processor.cpp
+
 // TODO: Return the aggregate CPU utilization
-float Processor::Utilization() { return 0.0; }
+// HELP is [0] really required?
+float Processor::Utilization() { return std::stof(LinuxParser::CpuUtilization()[0]); }
