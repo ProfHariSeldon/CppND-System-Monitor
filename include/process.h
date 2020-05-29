@@ -19,8 +19,8 @@ class Process {
   // TODO: Declare any necessary private members
   // https://github.com/rmorejon65/CppND-System-Monitor/blob/master/include/process.h
  private:
-  int pid_ = 0; 
-  float cpuUtilization_;
+  int iPid_ = 0;
+  float fCpuUtilization_;
 };
 
 #endif

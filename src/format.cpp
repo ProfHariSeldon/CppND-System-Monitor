@@ -12,16 +12,16 @@ using std::string;
 // OUTPUT: HH:MM:SS
 // REMOVE: [[maybe_unused]] once you define the function
 // DONE
-string Format::ElapsedTime(long seconds)
+string Format::ElapsedTime(long lSeconds)
 {
   // Find the number of hours, throw away remainder
-  int hours = seconds/3600;
+  int iHours = lSeconds/3600;
   // Find the remainder number of seconds, convert to minutes
-  int minutes = (seconds%3600)/60;
+  int iMinutes = (lSeconds%3600)/60;
   // Find the remainder number of seconds in the remainder number of minutes
-  seconds = (seconds%3600)%60;
+  int iSeconds = (lSeconds%3600)%60;
   // Format result
-  string elapsedtime = std::to_string(hours) + ":" + std::to_string(minutes) + ":" +std::to_string(seconds);
+  string sElapsedTime = std::to_string(iHours) + ":" + std::to_string(iMinutes) + ":" +std::to_string(iSeconds);
   // Return result
-  return elapsedtime;
+  return sElapsedTime;
 }
