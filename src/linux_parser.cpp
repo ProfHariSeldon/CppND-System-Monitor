@@ -311,7 +311,7 @@ string LinuxParser::User(int pid) {
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::UpTime(int pid) {
   string sLine, sVar; 
-  long lStartTtime = 0, uptime ; 
+  long lStartTtime = 0, lUptime ; 
   vector<string> svecStatList; 
   string kPidDirectory = "/" + std::to_string(pid);
   std::ifstream filestream (kProcDirectory + kPidDirectory +kStatFilename ); 
@@ -322,6 +322,6 @@ long LinuxParser::UpTime(int pid) {
     
   }
   lStartTtime = std::stol(svecStatList[21]) / sysconf(_SC_CLK_TCK);
-  uptime = LinuxParser::UpTime() - lStartTtime; 
-  return uptime;
+  lUptime = LinuxParser::UpTime() - lStartTtime; 
+  return lUptime;
 }
