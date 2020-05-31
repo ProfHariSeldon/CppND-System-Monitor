@@ -70,8 +70,7 @@ vector<int> LinuxParser::Pids() {
 // Similar to string LinuxParser::Kernel()
 // TODO: Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
-  return 0.0;
-  /*float fTotalMem, fFreeMem, fMemUtil; //initialise all three as floats since the output of the calculation will be float
+  float fTotalMem, fFreeMem, fMemUtil; //initialise all three as floats since the output of the calculation will be float
   string sLine1, sLine2;
   string sLabel1, sLabel2;
   std::ifstream stream(kProcDirectory + kMeminfoFilename);
@@ -90,15 +89,14 @@ float LinuxParser::MemoryUtilization() {
   // Memory Utilisation calculation
   fMemUtil = (fTotalMem - fFreeMem) / fTotalMem;
   
-  return fMemUtil;*/
+  return fMemUtil;
 }
 
 // https://github.com/martycheung/CppND-System-Monitor-Project/blob/master/src/linux_parser.cpp
 // Similar to string LinuxParser::Kernel()
 // TODO: Read and return the system uptime
 long LinuxParser::UpTime() {
-  return 0;
-  /*long lUptime;
+  long lUptime;
   string sLine;
   std::ifstream stream(kProcDirectory + kUptimeFilename);
   
@@ -109,14 +107,15 @@ long LinuxParser::UpTime() {
     linestream >> lUptime;
   }
   
-  return lUptime;*/
+  return lUptime;
 }
 
+// https://github.com/rmorejon65/CppND-System-Monitor/blob/master/src/linux_parser.cpp
 // https://github.com/martycheung/CppND-System-Monitor-Project/blob/master/src/linux_parser.cpp
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() {
   return 0;
-  /*long lTotalJiffies=0;
+  long lTotalJiffies=0;
   vector<string> svecUtil = LinuxParser::CpuUtilization();
   
   // loop through and sum up all except for kGuest_ and kGuestNice_, since they are already accounted for in usertime and nicetime (according to htop source code)
@@ -127,63 +126,202 @@ long LinuxParser::Jiffies() {
     }
   }
   
-  return lTotalJiffies;*/
+  return lTotalJiffies;
 }
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) {
-  // pid = 0;
-  return 0;
+long LinuxParser::ActiveJiffies(int pid) {
+    string sValue, sLine ;
+  long lClock; 
+  vector<string> svecStatList ; 
+  std::ifstream filestream (kProcDirectory + std::to_string(pid) + kStatFilename);
+  if( filestream.is_open()){
+    std::getline(filestream , sLine); 
+    std::istringstream linestream(sLine); 
+    while(linestream >> sValue){svecStatList.push_back(sValue);}
+
+  }
+  long int lUtime{std::stol(svecStatList[13])};
+  long int lStime{std::stol(svecStatList[14])};
+  long int lCutime{std::stol(svecStatList[15])};
+  long int lCstime{std::stol(svecStatList[16])};
+
+  lClock = lUtime + lStime + lCutime + lCstime ; 
+  return lClock;
 }
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+long LinuxParser::ActiveJiffies() { return Jiffies() - IdleJiffies(); }
 
+// https://github.com/martycheung/CppND-System-Monitor-Project/blob/master/src/linux_parser.cpp
 // TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
+long LinuxParser::IdleJiffies() {
+  
+  vector<string> svecUtilString = LinuxParser::CpuUtilization();
+  
+  // add only idletime and iowait, converted from string to long
+  long lIdleJiffies = stol(svecUtilString[LinuxParser::CPUStates::kIdle_]) + stol(svecUtilString[LinuxParser::CPUStates::kIOwait_]);
+  
+  return lIdleJiffies;
+}
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // Similar to LinuxParser::Pids()
 // TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+vector<string> LinuxParser::CpuUtilization() {
+  string sKey, sLine ;  // Don't need string value?
+  vector<string> svecJiffiesList; 
+  std::ifstream filestream(kProcDirectory + kStatFilename ); 
+  if (filestream.is_open())
+  {
+    std::getline(filestream, sLine); 
+    std::istringstream linestream(sLine); 
+    while(linestream >> sKey ) { 
+      if (sKey != "cpu"){svecJiffiesList.push_back(sKey);}
+    }
+  }
+  return svecJiffiesList;
+}
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+int LinuxParser::TotalProcesses() {
+  std::ifstream filestream(kProcDirectory + kStatFilename);
+   long lTotalProcesses = 0;
+  if (filestream.is_open()) {
+      std::string line;
+      bool bProcessNumberFound = false;
+      
+      while (std::getline(filestream, line) && !bProcessNumberFound) {
+        std::istringstream linestream(line);
+        std::string key;
+        linestream >> key;
+        if (key == "processes")
+        {          
+            linestream >> lTotalProcesses;
+            bProcessNumberFound = true;
+        }
+      }
 
+  }
+  return lTotalProcesses; 
+}
+
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { return 0; }
+int LinuxParser::RunningProcesses() {
+  std::ifstream filestream(kProcDirectory + kStatFilename);
+   long lRunningProcesses = 0;
+  if (filestream.is_open()) {
+      std::string line;
+      bool bProcessNumberFound = false;
+      
+      while (std::getline(filestream, line) && !bProcessNumberFound) {
+        std::istringstream linestream(line);
+        std::string key;
+        linestream >> key;
+        if (key == "procs_running")
+        {          
+            linestream >> lRunningProcesses;
+            bProcessNumberFound = true;
+        }
+      }
 
+  }
+  return lRunningProcesses;
+}
+
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid[[maybe_unused]]) {
-  // pid = 0;
-  return string();
+string LinuxParser::Command(int pid) {
+  string sCmd ; 
+  string kPidDirectory = "/" + std::to_string(pid); 
+  std::ifstream filestream (kProcDirectory + kPidDirectory + kCmdlineFilename); 
+  if (filestream.is_open())
+  {
+    std::getline(filestream, sCmd); 
+
+  }
+  return sCmd;
 }
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid[[maybe_unused]]) {
-  // pid = 0;
-  return string();
+string LinuxParser::Ram(int pid) {
+  string sLine, sKey; 
+  long lRam ; 
+  string kPidDirectory = "/" + std::to_string(pid);
+  std::ifstream filestream (kProcDirectory + kPidDirectory +kStatusFilename ); 
+  if (filestream.is_open())
+  {
+    while (std::getline(filestream, sLine))
+    {
+      std::istringstream linestream(sLine); 
+      linestream >> sKey ; 
+      if (sKey == "VmSize:"){linestream >> lRam; break ; }
+    }
+    
+  }
+  return std::to_string(lRam/1000);
 }
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid[[maybe_unused]]) {
-  // pid = 0;
-  return string();
+string LinuxParser::Uid(int pid) {
+  string sLine, sKey, sUid; 
+  string kPidDirectory = "/" + std::to_string(pid);
+  std::ifstream filestream (kProcDirectory + kPidDirectory +kStatusFilename ); 
+  if (filestream.is_open()){
+    std::getline(filestream, sLine); 
+    std::istringstream linestream(sLine);
+    while (linestream >> sKey)
+    {
+      if (sKey == "Uid:"){linestream >> sUid; break ; }
+    }
+    
+  }
+  return sUid ;
 }
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the user associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid[[maybe_unused]]) {
-  // pid = 0;
-  return string();
+string LinuxParser::User(int pid) {
+  string sLine, sUser, sUid, sVar; 
+  std::ifstream filestream (kPasswordPath);
+  if(filestream.is_open()){
+    while(std::getline(filestream, sLine)){
+      std::replace(sLine.begin(), sLine.end(), ':',  ' ');
+      std::istringstream linestream(sLine);
+      linestream >> sUser >> sVar >> sUid ; 
+      if(sUid == Uid(pid)){break; } 
+    }
+  }
+  return sUser;
 }
 
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid[[maybe_unused]]) {
-  // pid = 0;
-  return 0;
+long LinuxParser::UpTime(int pid) {
+  string sLine, sVar; 
+  long lStartTtime = 0, uptime ; 
+  vector<string> svecStatList; 
+  string kPidDirectory = "/" + std::to_string(pid);
+  std::ifstream filestream (kProcDirectory + kPidDirectory +kStatFilename ); 
+  if (filestream.is_open()){
+    std::getline(filestream, sLine); 
+    std::istringstream linestream(sLine); 
+    while (linestream >> sVar){svecStatList.push_back(sVar);}
+    
+  }
+  lStartTtime = std::stol(svecStatList[21]) / sysconf(_SC_CLK_TCK);
+  uptime = LinuxParser::UpTime() - lStartTtime; 
+  return uptime;
 }
