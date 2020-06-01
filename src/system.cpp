@@ -19,8 +19,17 @@ using std::vector;
 // TODO: Return the system's CPU
 Processor& System::Cpu() { return cpu_; }
 
+// https://knowledge.udacity.com/questions/212681
 // TODO: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+vector<Process>& System::Processes() {
+  processes_.clear(); // make sure that the vector is clear 
+  auto pids=LinuxParser::Pids(); // get a vector of all pids
+  for(int item:pids){ // iterate over each pid
+    // make a new object from Process class using its PID and then add the object to the processes_ vector
+    processes_.push_back(Process(item)); 
+  }  
+  return processes_;
+}
 
 // TODO: Return the system's kernel identifier (string)
 std::string System::Kernel() { return LinuxParser::Kernel(); }
