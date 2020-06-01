@@ -16,6 +16,9 @@ class Process {
   long int UpTime();                       // TODO: See src/process.cpp
   bool operator<(Process const& a) const;  // TODO: See src/process.cpp
 
+  // https://knowledge.udacity.com/questions/212681
+  Process(int pid) : pid_(pid){}
+
   // TODO: Declare any necessary private members
   // https://github.com/rmorejon65/CppND-System-Monitor/blob/master/include/process.h
  private:
