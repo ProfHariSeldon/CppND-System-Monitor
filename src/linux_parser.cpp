@@ -119,6 +119,9 @@ long LinuxParser::Jiffies() {
   vector<string> svecUtil = LinuxParser::CpuUtilization();
   
   // loop through and sum up all except for kGuest_ and kGuestNice_, since they are already accounted for in usertime and nicetime (according to htop source code)
+  // https://github.com/rmorejon65/CppND-System-Monitor/blob/master/src/linux_parser.cpp
+  // The entire svecUtil is linestream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guess >> guessnice;
+  // In other words lTotalJiffies = totalUserTime (user - guess) + totalNiceTime (nice - guesnice) + totalIdleTime (idle + iowait) + totalSystem (system + irq + softirq) + totalVirtualTime (guess + guessnice)
   for (unsigned int i = 0; i < svecUtil.size(); i++) {
     if(i != LinuxParser::CPUStates::kGuest_ && i != LinuxParser::CPUStates::kGuestNice_) {
       // stol converts string to long int
@@ -180,6 +183,10 @@ vector<string> LinuxParser::CpuUtilization() {
     std::getline(filestream, sLine); 
     std::istringstream linestream(sLine); 
     while(linestream >> sKey ) { 
+      // In other words:
+      // idle = params[3] + params[4];
+      // active = params[0] + params[1] + params[2] + params[4] + params[6] + params[7];
+      // svecJiffiesList = active/(float)(idle + active);
       if (sKey != "cpu"){svecJiffiesList.push_back(sKey);}
     }
   }
@@ -199,8 +206,9 @@ int LinuxParser::TotalProcesses() {
         std::istringstream linestream(line);
         std::string key;
         linestream >> key;
+        // In other words we only care about TotalProcess no other data
         if (key == "processes")
-        {          
+        {
             linestream >> lTotalProcesses;
             bProcessNumberFound = true;
         }
@@ -223,6 +231,7 @@ int LinuxParser::RunningProcesses() {
         std::istringstream linestream(line);
         std::string key;
         linestream >> key;
+        // In other words we only care about RunningProcesses no other data
         if (key == "procs_running")
         {          
             linestream >> lRunningProcesses;
@@ -243,6 +252,7 @@ string LinuxParser::Command(int pid) {
   std::ifstream filestream (kProcDirectory + kPidDirectory + kCmdlineFilename); 
   if (filestream.is_open())
   {
+    // Record the kCmdlineFilename associated with the kProcDirectory by using the key pid?
     std::getline(filestream, sCmd); 
 
   }
@@ -256,13 +266,14 @@ string LinuxParser::Ram(int pid) {
   string sLine, sKey; 
   long lRam ; 
   string kPidDirectory = "/" + std::to_string(pid);
-  std::ifstream filestream (kProcDirectory + kPidDirectory +kStatusFilename ); 
+  std::ifstream filestream (kProcDirectory + kPidDirectory + kStatusFilename ); 
   if (filestream.is_open())
   {
     while (std::getline(filestream, sLine))
     {
       std::istringstream linestream(sLine); 
-      linestream >> sKey ; 
+      linestream >> sKey ;
+      // The data associated with the key VmSize: is the memory used by a process
       if (sKey == "VmSize:"){linestream >> lRam; break ; }
     }
     
@@ -276,12 +287,13 @@ string LinuxParser::Ram(int pid) {
 string LinuxParser::Uid(int pid) {
   string sLine, sKey, sUid; 
   string kPidDirectory = "/" + std::to_string(pid);
-  std::ifstream filestream (kProcDirectory + kPidDirectory +kStatusFilename ); 
+  std::ifstream filestream (kProcDirectory + kPidDirectory + kStatusFilename ); 
   if (filestream.is_open()){
     std::getline(filestream, sLine); 
     std::istringstream linestream(sLine);
     while (linestream >> sKey)
     {
+      // The data associated with the key Uid: is the user ID associated with a process
       if (sKey == "Uid:"){linestream >> sUid; break ; }
     }
     
@@ -299,7 +311,9 @@ string LinuxParser::User(int pid) {
     while(std::getline(filestream, sLine)){
       std::replace(sLine.begin(), sLine.end(), ':',  ' ');
       std::istringstream linestream(sLine);
+      // Read a line that contains a user, variable, and process ID
       linestream >> sUser >> sVar >> sUid ; 
+      // If the line's process ID is the one we want, then break and return sUser
       if(sUid == Uid(pid)){break; } 
     }
   }
@@ -318,9 +332,11 @@ long LinuxParser::UpTime(int pid) {
   if (filestream.is_open()){
     std::getline(filestream, sLine); 
     std::istringstream linestream(sLine); 
+    // Load up svecStatList with sVar elements
     while (linestream >> sVar){svecStatList.push_back(sVar);}
     
   }
+  // We only care about the 21st sVar I'm sorry I don't know how to find out why
   lStartTtime = std::stol(svecStatList[21]) / sysconf(_SC_CLK_TCK);
   lUptime = LinuxParser::UpTime() - lStartTtime; 
   return lUptime;
