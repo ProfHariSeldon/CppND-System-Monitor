@@ -175,7 +175,9 @@ long LinuxParser::IdleJiffies() {
 
 // https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // Similar to LinuxParser::Pids()
+// ERROR returns several elements in the vector string not as percentages, but actually you want a single percentage for overall CPU Utilization so the vector string should contain only one element
 // TODO: Read and return CPU utilization
+/*
 vector<string> LinuxParser::CpuUtilization() {
   string sKey, sLine ;  // Don't need string value?
   vector<string> svecJiffiesList; 
@@ -194,6 +196,35 @@ vector<string> LinuxParser::CpuUtilization() {
   }
   return svecJiffiesList;
 }
+*/
+
+// https://github.com/avnishsachar/CppND-System-Monitor/blob/master/src/linux_parser.cpp
+// you want a single percentage for overall CPU Utilization so the vector string contains only one element, the percentage
+vector<string> LinuxParser::CpuUtilization() { 
+  string sLine;
+  string sKey;
+  int iIdle;
+  int iActive;
+  float fUtil;
+  vector<string> svJiffies{};
+  vector<int> ivParams;
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, sLine);
+    std::istringstream linestream(sLine);
+    linestream >> sKey;
+    while (linestream >> sKey) {
+      ivParams.emplace_back(std::stoi(sKey));
+      }
+    iIdle = ivParams[3] + ivParams[4];
+    iActive = ivParams[0] + ivParams[1] + ivParams[2] + ivParams[4] + ivParams[6] + ivParams[7];
+    fUtil = iActive/(float)(iIdle + iActive);
+    svJiffies.emplace_back(std::to_string(fUtil));
+  }
+  return svJiffies;
+}
+
+
 /*
 // https://knowledge.udacity.com/questions/225256
 // ERROR name (Util) followed by a '::' must be a class or namespace name
