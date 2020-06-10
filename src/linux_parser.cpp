@@ -116,7 +116,6 @@ long LinuxParser::UpTime() {
 // https://github.com/martycheung/CppND-System-Monitor-Project/blob/master/src/linux_parser.cpp
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() {
-  return 0;
   long lTotalJiffies=0;
   vector<string> svecUtil = LinuxParser::CpuUtilization();
   
