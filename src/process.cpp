@@ -18,17 +18,17 @@ using std::vector;
 int Process::Pid() { return iPid_; }
 
 // https://github.com/martycheung/CppND-System-Monitor-Project/blob/master/src/process.cpp
+// https://knowledge.udacity.com/questions/225256
 // TODO: Return this process's CPU utilization
 // Do not use this because it requires adding a second CpuUtilization function to LinuxParser: return cpuUtilization_ = LinuxParser::CpuUtilization(iPid_);
 float Process::CpuUtilization() {
   long lProcJiffies = LinuxParser::ActiveJiffies(this->iPid_);
   long lTotalJiffies = LinuxParser::Jiffies();
   
-  float fProcUtil = (float)lProcJiffies / (float)lTotalJiffies;
-  
-  this->fCpuUtilization_ = fProcUtil;
-  
-  return fProcUtil; 
+  if (lTotalJiffies > 0.0f){
+    return (float)lProcJiffies / (float)lTotalJiffies;
+  }
+  return 0.0f; 
 }
 
 // TODO: Return the command that generated this process

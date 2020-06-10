@@ -10,6 +10,8 @@ using std::string;
 using std::to_string;
 using std::vector;
 
+// using Util::getStream;
+
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
   string line;
@@ -192,6 +194,61 @@ vector<string> LinuxParser::CpuUtilization() {
   }
   return svecJiffiesList;
 }
+/*
+// https://knowledge.udacity.com/questions/225256
+// ERROR name (Util) followed by a '::' must be a class or namespace name
+float LinuxParser::getCpuPercent(int pid)
+{
+	std::string path =  kProcDirectory + to_string(pid) + kStatFilename;
+	std::ifstream stream;
+	Util::getStream(path, stream);
+	string line;
+	std::getline(stream, line); // file contains only one line
+	std::istringstream buffer(line);
+	std::istream_iterator<string> beginning(buffer), end;
+	std::vector<string> line_content(beginning, end);
+	float utime = LinuxParser::UpTime(pid);
+	float stime = stof(line_content[14]);
+	float cutime = stof(line_content[15]);
+	float cstime = stof(line_content[16]);
+	float starttime = stof(line_content[21]);
+	float uptime = LinuxParser::UpTime();
+	float freq = sysconf(_SC_CLK_TCK);
+	float total_time = utime + stime + cutime + cstime;
+	float seconds = uptime - (starttime / freq);
+	float result = 100.0 * ((total_time / freq) / seconds);
+	return (result);
+}
+*/
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
+// ERROR: why is this here not in process.cpp?  process.cpp already has a float Process::CpuUtilization()
+ // Cpu utilizationfor specific process
+ /*
+ float LinuxParser::CpuUtilProcess(int pid){  
+
+   string line;
+  vector<string> columns;
+  string column;
+  float util{0.0};
+  std::ifstream stream(kProcDirectory + to_string(pid) + kStatFilename);
+  if(stream.is_open()) {
+    getline(stream, line);
+    std::istringstream linestream(line);
+    while(linestream.good()) {
+      getline(linestream, column, ' ');
+      columns.push_back(column);
+    }
+    //totalTime = utime + stime
+    // with child processes totalTime += cutime + cstime
+    int totalProcessTicks = stoi(columns[13]) + stoi(columns[14]) + stoi(columns[15]) + stoi(columns[16]);
+    float totalProcessTime = totalProcessTicks / (float)sysconf(_SC_CLK_TCK);
+    long totalSeconds = UpTime(pid);
+    util = totalSeconds != 0 ? (totalProcessTime/(float)totalSeconds) : 0.0;
+  }
+  return util;
+
+ }
+ */
 
 // https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the total number of processes
