@@ -53,9 +53,6 @@ std::string Uid(int pid);
 std::string User(int pid);
 long int UpTime(int pid);
 
-// float getCpuPercent(int pid);
-// float CpuUtilProcess(int pid);
-
 };  // namespace LinuxParser
 
 #endif

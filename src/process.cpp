@@ -17,18 +17,18 @@ using std::vector;
 // TODO: Return this process's ID
 int Process::Pid() { return iPid_; }
 
+// float Process::CpuUtilization code that did not work
 // https://github.com/martycheung/CppND-System-Monitor-Project/blob/master/src/process.cpp
+// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
+
+// float Process::CpuUtilization() code suggested by professor in thread below, but "Util::getStream(path, stream);" does not work
 // https://knowledge.udacity.com/questions/225256
+
+// https://github.com/sinamoghimi73/CppND-System-Monitor-Project/blob/master/src/process.cpp
 // TODO: Return this process's CPU utilization
-// Do not use this because it requires adding a second CpuUtilization function to LinuxParser: return cpuUtilization_ = LinuxParser::CpuUtilization(iPid_);
 float Process::CpuUtilization() {
-  long lProcJiffies = LinuxParser::ActiveJiffies(this->iPid_);
-  long lTotalJiffies = LinuxParser::Jiffies();
-  
-  if (lTotalJiffies > 0.0f){
-    return (float)lProcJiffies / (float)lTotalJiffies;
-  }
-  return 0.0f; 
+  return static_cast<float>(LinuxParser::ActiveJiffies(iPid_) * 100) /
+         sysconf(_SC_CLK_TCK) / LinuxParser::UpTime(iPid_);
 }
 
 // TODO: Return the command that generated this process

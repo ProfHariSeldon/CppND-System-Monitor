@@ -172,33 +172,15 @@ long LinuxParser::IdleJiffies() {
   return lIdleJiffies;
 }
 
+// vector<string> LinuxParser::CpuUtilization() that did not work (a vector string with multiple elements not one element that is the CPU %):
 // https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
-// Similar to LinuxParser::Pids()
-// ERROR returns several elements in the vector string not as percentages, but actually you want a single percentage for overall CPU Utilization so the vector string should contain only one element
-// TODO: Read and return CPU utilization
-/*
-vector<string> LinuxParser::CpuUtilization() {
-  string sKey, sLine ;  // Don't need string value?
-  vector<string> svecJiffiesList; 
-  std::ifstream filestream(kProcDirectory + kStatFilename ); 
-  if (filestream.is_open())
-  {
-    std::getline(filestream, sLine); 
-    std::istringstream linestream(sLine); 
-    while(linestream >> sKey ) { 
-      // In other words:
-      // idle = params[3] + params[4];
-      // active = params[0] + params[1] + params[2] + params[4] + params[6] + params[7];
-      // svecJiffiesList = active/(float)(idle + active);
-      if (sKey != "cpu"){svecJiffiesList.push_back(sKey);}
-    }
-  }
-  return svecJiffiesList;
-}
-*/
+// https://github.com/AhmedAliMSoliman/CppND-System-Monitor-Project/blob/master/src/linux_parser.cpp
+// https://github.com/sinamoghimi73/CppND-System-Monitor-Project/blob/master/src/linux_parser.cpp
 
+// https://knowledge.udacity.com/questions/225256
 // https://github.com/avnishsachar/CppND-System-Monitor/blob/master/src/linux_parser.cpp
-// you want a single percentage for overall CPU Utilization so the vector string contains only one element, the percentage
+// you want a single element for overall CPU Utilization so the vector string contains only one element, the % CPU
+// TODO: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { 
   string sLine;
   string sKey;
@@ -222,63 +204,6 @@ vector<string> LinuxParser::CpuUtilization() {
   }
   return svJiffies;
 }
-
-
-/*
-// https://knowledge.udacity.com/questions/225256
-// ERROR name (Util) followed by a '::' must be a class or namespace name
-float LinuxParser::getCpuPercent(int pid)
-{
-	std::string path =  kProcDirectory + to_string(pid) + kStatFilename;
-	std::ifstream stream;
-	Util::getStream(path, stream);
-	string line;
-	std::getline(stream, line); // file contains only one line
-	std::istringstream buffer(line);
-	std::istream_iterator<string> beginning(buffer), end;
-	std::vector<string> line_content(beginning, end);
-	float utime = LinuxParser::UpTime(pid);
-	float stime = stof(line_content[14]);
-	float cutime = stof(line_content[15]);
-	float cstime = stof(line_content[16]);
-	float starttime = stof(line_content[21]);
-	float uptime = LinuxParser::UpTime();
-	float freq = sysconf(_SC_CLK_TCK);
-	float total_time = utime + stime + cutime + cstime;
-	float seconds = uptime - (starttime / freq);
-	float result = 100.0 * ((total_time / freq) / seconds);
-	return (result);
-}
-*/
-// https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
-// ERROR: why is this here not in process.cpp?  process.cpp already has a float Process::CpuUtilization()
- // Cpu utilizationfor specific process
- /*
- float LinuxParser::CpuUtilProcess(int pid){  
-
-   string line;
-  vector<string> columns;
-  string column;
-  float util{0.0};
-  std::ifstream stream(kProcDirectory + to_string(pid) + kStatFilename);
-  if(stream.is_open()) {
-    getline(stream, line);
-    std::istringstream linestream(line);
-    while(linestream.good()) {
-      getline(linestream, column, ' ');
-      columns.push_back(column);
-    }
-    //totalTime = utime + stime
-    // with child processes totalTime += cutime + cstime
-    int totalProcessTicks = stoi(columns[13]) + stoi(columns[14]) + stoi(columns[15]) + stoi(columns[16]);
-    float totalProcessTime = totalProcessTicks / (float)sysconf(_SC_CLK_TCK);
-    long totalSeconds = UpTime(pid);
-    util = totalSeconds != 0 ? (totalProcessTime/(float)totalSeconds) : 0.0;
-  }
-  return util;
-
- }
- */
 
 // https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the total number of processes
@@ -346,26 +271,28 @@ string LinuxParser::Command(int pid) {
   return sCmd;
 }
 
+// Code that did not work divided by 1000 not 1024
 // https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
+
+// https://github.com/avnishsachar/CppND-System-Monitor/blob/master/src/linux_parser.cpp
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid) {
-  string sLine, sKey; 
-  long lRam ; 
-  string kPidDirectory = "/" + std::to_string(pid);
-  std::ifstream filestream (kProcDirectory + kPidDirectory + kStatusFilename ); 
-  if (filestream.is_open())
-  {
-    while (std::getline(filestream, sLine))
-    {
-      std::istringstream linestream(sLine); 
-      linestream >> sKey ;
-      // The data associated with the key VmSize: is the memory used by a process
-      if (sKey == "VmSize:"){linestream >> lRam; break ; }
+string LinuxParser::Ram(int pid) { 
+  string sLine;
+  string sKey;
+  long lRam;
+  std::ifstream stream(kProcDirectory + to_string(pid) + kStatusFilename);
+  if (stream.is_open()) {
+    while (std::getline(stream, sLine)) {
+      std::istringstream linestream(sLine);
+      linestream >> sKey;
+      if (sKey == "VmSize:") {
+        linestream >> lRam;
+        break;
+      }
     }
-    
   }
-  return std::to_string(lRam/1000);
+  return std::to_string(lRam/ 1024);
 }
 
 // https://github.com/wissalsayhi/udacity-CppND---System-Monitor/blob/master/src/linux_parser.cpp
