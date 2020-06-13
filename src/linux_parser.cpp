@@ -37,13 +37,13 @@ string LinuxParser::OperatingSystem() {
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::Kernel() {
-  string os, kernel;
+  string os, kernel, version;
   string line;
   std::ifstream stream(kProcDirectory + kVersionFilename);
   if (stream.is_open()) {
     std::getline(stream, line);
     std::istringstream linestream(line);
-    linestream >> os >> kernel;
+    linestream >> os >> version >> kernel;
   }
   return kernel;
 }
@@ -350,7 +350,6 @@ long LinuxParser::UpTime(int pid) {
     while (linestream >> sVar){svecStatList.push_back(sVar);}
     
   }
-  // We only care about the 21st sVar I'm sorry I don't know how to find out why
   lStartTtime = std::stol(svecStatList[21]) / sysconf(_SC_CLK_TCK);
   lUptime = LinuxParser::UpTime() - lStartTtime; 
   return lUptime;
